@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emitter-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emitter-app
+  template:
+    metadata:
+      labels:
+        app: emitter-app
+    spec:
+      containers:
+      - name: emitter-app
+        image: us-central1-docker.pkg.dev/hpa-masterthesis/emitter-repo/emitter-app:latest
+---

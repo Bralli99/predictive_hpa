@@ -1,0 +1,32 @@
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-frontend
+  namespace: default
+spec:
+  minReplicas: 1
+  maxReplicas: 50
+  metrics:
+  - type: External
+    custom:
+      metric:
+        name: custom.googleapis.com|predicted-rps-gke
+      target:
+        type: AverageValue
+        averageValue: 13048  # target work queue items per pod. Divide by throughput per pod to get expected queue duration.
+  behavior: #  limit scaling speed in case of bursts of elements added to queue size
+    scaleUp: #  limit scaleup speed to 5 pod startups per minute, to protect downstream services from spikes
+      policies:
+      - type: Pods
+        value: 5
+        periodSeconds: 60
+    scaleDown:  # limit scaledown to 10 pods per 5 minutes
+      policies:
+      - type: Pods
+        value: 10
+        periodSeconds: 60
+      stabilizationWindowSeconds: 300
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
